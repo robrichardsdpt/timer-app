@@ -31,11 +31,10 @@ export function useAudio() {
     tone(1320, 0.05, 0.4, 0.2)
   }
 
-  // Interval GO — two sharp ascending blasts (like a starting gun)
+  // Interval GO — two clean ascending pings, punchy but not harsh
   function playGo() {
-    tone(660, 0, 0.12, 0.6, 'square')
-    tone(880, 0.14, 0.18, 0.6, 'square')
-    tone(1100, 0.34, 0.25, 0.5, 'sine')
+    tone(880, 0, 0.18, 0.5)
+    tone(1320, 0.16, 0.3, 0.4)
   }
 
   // Interval REST — descending soft tones (settle down)
