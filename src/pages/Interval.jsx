@@ -71,8 +71,8 @@ export default function Interval() {
     return () => clearInterval(tickRef.current)
   }, [phase, paused, workSecs, restSecs, maxSets, maxSecs])
 
-  async function start() {
-    await unlock()
+  function start() {
+    unlock()
     setCurrentSet(0)
     setElapsedSecs(0)
     setRemaining(workSecs)

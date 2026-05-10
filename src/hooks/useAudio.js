@@ -1,18 +1,48 @@
 import { useRef } from 'react'
 
+// Minimal silent WAV generated once — used to switch iOS audio session
+// to AVAudioSessionCategoryPlayback, which bypasses the silent switch.
+const SILENT_WAV = (() => {
+  const buf = new ArrayBuffer(46)
+  const v = new DataView(buf)
+  ;[82,73,70,70].forEach((b, i) => v.setUint8(i, b))       // "RIFF"
+  v.setUint32(4, 38, true)                                   // file size - 8
+  ;[87,65,86,69].forEach((b, i) => v.setUint8(8 + i, b))   // "WAVE"
+  ;[102,109,116,32].forEach((b, i) => v.setUint8(12 + i, b)) // "fmt "
+  v.setUint32(16, 16, true)   // fmt chunk size
+  v.setUint16(20, 1, true)    // PCM
+  v.setUint16(22, 1, true)    // mono
+  v.setUint32(24, 44100, true) // sample rate
+  v.setUint32(28, 88200, true) // byte rate
+  v.setUint16(32, 2, true)    // block align
+  v.setUint16(34, 16, true)   // bits per sample
+  ;[100,97,116,97].forEach((b, i) => v.setUint8(36 + i, b)) // "data"
+  v.setUint32(40, 2, true)    // data size (1 sample)
+  v.setInt16(44, 0, true)     // silence
+  let str = ''
+  new Uint8Array(buf).forEach(b => { str += String.fromCharCode(b) })
+  return 'data:audio/wav;base64,' + btoa(str)
+})()
+
 export function useAudio() {
   const ctxRef = useRef(null)
 
   function getCtx() {
-    if (!ctxRef.current) ctxRef.current = new AudioContext()
+    if (!ctxRef.current) {
+      const Ctx = window.AudioContext || window.webkitAudioContext
+      ctxRef.current = new Ctx()
+    }
     return ctxRef.current
   }
 
-  // iOS blocks Web Audio until a silent buffer is played inside a user gesture.
-  // Call this in every button handler that will later trigger sounds from timers.
-  async function unlock() {
+  // Call synchronously inside a button tap handler (not async — iOS revokes
+  // the user-gesture privilege at the first await boundary).
+  // Playing the silent HTMLAudioElement switches the iOS audio session to
+  // "playback" category so sounds ignore the hardware silent switch.
+  function unlock() {
     const c = getCtx()
-    if (c.state === 'suspended') await c.resume()
+    c.resume()
+    new Audio(SILENT_WAV).play().catch(() => {})
     const buf = c.createBuffer(1, 1, c.sampleRate)
     const src = c.createBufferSource()
     src.buffer = buf
@@ -22,19 +52,19 @@ export function useAudio() {
 
   function tone(freq, startDelay, dur, vol = 0.5, type = 'sine') {
     const c = getCtx()
-    if (c.state !== 'running') return
+    if (c.state !== 'running') c.resume()
     const osc = c.createOscillator()
     const gain = c.createGain()
     osc.connect(gain)
     gain.connect(c.destination)
     osc.type = type
     osc.frequency.value = freq
-    const t = c.currentTime + startDelay
+    const t = c.currentTime + startDelay + 0.05
     gain.gain.setValueAtTime(0, t)
     gain.gain.linearRampToValueAtTime(vol, t + 0.01)
     gain.gain.exponentialRampToValueAtTime(0.001, t + dur)
     osc.start(t)
-    osc.stop(t + dur + 0.05)
+    osc.stop(t + dur + 0.1)
   }
 
   function playSetChime() {

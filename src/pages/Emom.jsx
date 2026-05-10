@@ -58,8 +58,8 @@ export default function Emom() {
     return () => clearInterval(tickRef.current)
   }, [status, sets, intervalSecs])
 
-  async function start() {
-    await unlock()
+  function start() {
+    unlock()
     setCurrentSet(0)
     setRemaining(intervalSecs)
     setStatus('running')

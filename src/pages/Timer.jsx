@@ -47,8 +47,8 @@ export default function Timer() {
     return () => clearInterval(tickRef.current)
   }, [running, remaining])
 
-  async function start() {
-    await unlock()
+  function start() {
+    unlock()
     requestNotify()
     if (remaining === null) setRemaining(duration)
     setRunning(true)
