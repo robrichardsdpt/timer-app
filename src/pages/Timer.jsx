@@ -9,9 +9,9 @@ async function requestNotify() {
   }
 }
 
-function fireNotification() {
+function fireNotification(title = "Time's up!", body = 'Your timer finished.') {
   if ('Notification' in window && Notification.permission === 'granted') {
-    new Notification("Time's up!", { body: 'Your timer finished.', icon: '/icon-192.png' })
+    new Notification(title, { body, icon: '/icon-192.png' })
   }
 }
 

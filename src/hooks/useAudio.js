@@ -1,11 +1,29 @@
 import { useRef } from 'react'
 
-// Web Audio API uses iOS AVAudioSessionCategoryAmbient — mixes with music
-// and respects the silent switch. HTMLAudioElement uses Playback category,
-// which interrupts music. So we use Web Audio for music compatibility.
+// iOS PWA (WKWebView) gives web pages no way to mix audio with background
+// music — any sound we play claims the audio session and pauses music.
+// We can't set AVAudioSessionCategoryPlayback's mixWithOthers from the web,
+// and there's no API to detect if music is playing. So in iOS PWA mode we
+// stay silent entirely; music plays freely. (Safari isn't affected.)
+const isIOS = typeof navigator !== 'undefined' && /iPad|iPhone|iPod/.test(navigator.userAgent)
+const isStandalone = typeof window !== 'undefined' && (
+  window.matchMedia?.('(display-mode: standalone)').matches ||
+  window.navigator.standalone === true
+)
+export const AUDIO_DISABLED = isIOS && isStandalone
 
 export function useAudio() {
   const ctxRef = useRef(null)
+
+  if (AUDIO_DISABLED) {
+    return {
+      unlock:           () => {},
+      playSetChime:     () => {},
+      playGo:           () => {},
+      playRest:         () => {},
+      playFinishAlarm:  () => {},
+    }
+  }
 
   function getCtx() {
     if (!ctxRef.current) {
@@ -14,8 +32,8 @@ export function useAudio() {
     return ctxRef.current
   }
 
-  // Call synchronously inside a button tap. Resumes the context and plays
-  // a silent 1-sample buffer to satisfy iOS's user-gesture requirement.
+  // Synchronous within a button tap. Resumes the context and plays a
+  // 1-sample silent buffer to satisfy iOS's user-gesture requirement.
   function unlock() {
     const ctx = getCtx()
     ctx.resume()

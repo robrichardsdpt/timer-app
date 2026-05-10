@@ -3,6 +3,18 @@ import { Ring } from '../components/Ring'
 import { useWakeLock } from '../hooks/useWakeLock'
 import { useAudio } from '../hooks/useAudio'
 
+async function requestNotify() {
+  if ('Notification' in window && Notification.permission === 'default') {
+    await Notification.requestPermission()
+  }
+}
+
+function fireNotification(title, body) {
+  if ('Notification' in window && Notification.permission === 'granted') {
+    new Notification(title, { body, icon: '/icon-192.png' })
+  }
+}
+
 function formatSecs(s) {
   if (s < 60) return `${s}s`
   const m = Math.floor(s / 60)
@@ -45,6 +57,7 @@ export default function Emom() {
           if (next >= sets) {
             setStatus('finished')
             playFinishAlarm()
+            fireNotification('EMOM complete', `${sets} sets done`)
             clearInterval(tickRef.current)
             return s
           }
@@ -60,6 +73,7 @@ export default function Emom() {
 
   function start() {
     unlock()
+    requestNotify()
     setCurrentSet(0)
     setRemaining(intervalSecs)
     setStatus('running')

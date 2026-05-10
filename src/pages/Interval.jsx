@@ -3,6 +3,18 @@ import { Ring } from '../components/Ring'
 import { useWakeLock } from '../hooks/useWakeLock'
 import { useAudio } from '../hooks/useAudio'
 
+async function requestNotify() {
+  if ('Notification' in window && Notification.permission === 'default') {
+    await Notification.requestPermission()
+  }
+}
+
+function fireNotification(title, body) {
+  if ('Notification' in window && Notification.permission === 'granted') {
+    new Notification(title, { body, icon: '/icon-192.png' })
+  }
+}
+
 function formatSecs(s) {
   if (s < 60) return `${s}s`
   const m = Math.floor(s / 60)
@@ -51,6 +63,7 @@ export default function Interval() {
             if (nextSet >= maxSets || elapsedAfter >= maxSecs) {
               clearInterval(tickRef.current)
               playFinishAlarm()
+              fireNotification('Workout complete', `${nextSet} rounds done`)
               return 'finished'
             }
             playRest()
@@ -73,6 +86,7 @@ export default function Interval() {
 
   function start() {
     unlock()
+    requestNotify()
     setCurrentSet(0)
     setElapsedSecs(0)
     setRemaining(workSecs)
