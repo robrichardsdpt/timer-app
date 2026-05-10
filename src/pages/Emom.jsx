@@ -31,7 +31,7 @@ export default function Emom() {
   const [remaining, setRemaining] = useState(0)
   const [status, setStatus] = useState('idle')
   const tickRef = useRef(null)
-  const { playSetChime, playFinishAlarm } = useAudio()
+  const { unlock, playSetChime, playFinishAlarm } = useAudio()
 
   useWakeLock(status === 'running')
 
@@ -58,7 +58,8 @@ export default function Emom() {
     return () => clearInterval(tickRef.current)
   }, [status, sets, intervalSecs])
 
-  function start() {
+  async function start() {
+    await unlock()
     setCurrentSet(0)
     setRemaining(intervalSecs)
     setStatus('running')

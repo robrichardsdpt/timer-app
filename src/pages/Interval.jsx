@@ -27,7 +27,7 @@ export default function Interval() {
   const [paused, setPaused] = useState(false)
 
   const tickRef = useRef(null)
-  const { playGo, playRest, playFinishAlarm } = useAudio()
+  const { unlock, playGo, playRest, playFinishAlarm } = useAudio()
 
   useWakeLock(phase === 'work' || phase === 'rest')
 
@@ -71,7 +71,8 @@ export default function Interval() {
     return () => clearInterval(tickRef.current)
   }, [phase, paused, workSecs, restSecs, maxSets, maxSecs])
 
-  function start() {
+  async function start() {
+    await unlock()
     setCurrentSet(0)
     setElapsedSecs(0)
     setRemaining(workSecs)

@@ -27,7 +27,7 @@ export default function Timer() {
   const [remaining, setRemaining] = useState(null)
   const [running, setRunning] = useState(false)
   const tickRef = useRef(null)
-  const { playFinishAlarm } = useAudio()
+  const { unlock, playFinishAlarm } = useAudio()
 
   useWakeLock(running)
 
@@ -47,7 +47,8 @@ export default function Timer() {
     return () => clearInterval(tickRef.current)
   }, [running, remaining])
 
-  function start() {
+  async function start() {
+    await unlock()
     requestNotify()
     if (remaining === null) setRemaining(duration)
     setRunning(true)
