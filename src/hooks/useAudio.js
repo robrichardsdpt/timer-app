@@ -58,6 +58,10 @@ function makeWAV(notes, sampleRate = 22050) {
   return 'data:audio/wav;base64,' + btoa(b)
 }
 
+// Near-silent looping clip — keeps the iOS WKWebView audio session alive
+// so timer-triggered plays can join the active session (bypassing silent switch)
+const KEEPALIVE = makeWAV([{ freq: 440, start: 0, dur: 1.0, vol: 0.001 }])
+
 // Pre-bake all clips at import time
 const CLIPS = {
   chime: makeWAV([
@@ -83,6 +87,7 @@ const CLIPS = {
 // ---------------------------------------------------------------------------
 export function useAudio() {
   const elsRef = useRef(null)
+  const keepAliveRef = useRef(null)
 
   function getEls() {
     if (!elsRef.current) {
@@ -96,11 +101,19 @@ export function useAudio() {
     return elsRef.current
   }
 
-  // Call synchronously inside a button tap. Playing each element once
-  // (even briefly) tells iOS this page is doing media playback, which
-  // switches the audio session category and bypasses the silent switch
-  // for all subsequent plays — including those triggered from timers.
+  // Call synchronously inside a button tap. Starts a looping near-silent
+  // element that holds the iOS WKWebView audio session open in Playback
+  // mode. Without this, WKWebView drops the session when the primed clips
+  // are paused, and timer-triggered plays are blocked by the silent switch.
   function unlock() {
+    if (!keepAliveRef.current) {
+      const el = new Audio(KEEPALIVE)
+      el.loop = true
+      el.volume = 0.001
+      keepAliveRef.current = el
+    }
+    keepAliveRef.current.play().catch(() => {})
+
     for (const el of Object.values(getEls())) {
       el.play()
         .then(() => { el.pause(); el.currentTime = 0 })
