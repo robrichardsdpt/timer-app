@@ -1,0 +1,22 @@
+{
+  "name": "timer-app",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "setup": "node scripts/generate-icons.cjs",
+    "dev": "npm run setup && vite",
+    "build": "npm run setup && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^7.5.3"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.3.4",
+    "vite": "^6.3.5",
+    "vite-plugin-pwa": "^0.21.2"
+  }
+}
