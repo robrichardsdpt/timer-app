@@ -177,19 +177,55 @@ body::before {
 /* ── Stopwatch display ───────────────── */
 .sw-display {
   display: flex;
-  align-items: center;
+  align-items: baseline;
   justify-content: center;
   padding: 1.5rem 0;
+  gap: 0;
 }
 
-.sw-time {
+/* Each 2-digit group gets a fixed width so digits never cause layout shifts */
+.sw-seg {
   font-family: var(--digit-font);
   font-size: 3.5rem;
   font-weight: 400;
-  letter-spacing: 0.04em;
-  font-variant-numeric: tabular-nums;
+  width: 2.4ch;
+  text-align: center;
+  display: inline-block;
   color: var(--text);
-  text-shadow: 0 0 40px rgba(232, 238, 255, 0.08);
+}
+
+.sw-sep {
+  font-family: var(--digit-font);
+  font-size: 3.5rem;
+  font-weight: 400;
+  color: var(--muted);
+  line-height: 1;
+  padding: 0 0.05ch;
+}
+
+/* Centiseconds are smaller + dimmer so the eye anchors on MM:SS */
+.sw-cs-wrap {
+  display: inline-flex;
+  align-items: baseline;
+  margin-left: 0.1ch;
+}
+
+.sw-dot {
+  font-family: var(--digit-font);
+  font-size: 2rem;
+  color: var(--muted);
+  line-height: 1;
+}
+
+.sw-cs {
+  font-family: var(--digit-font);
+  font-size: 2rem;
+  font-weight: 400;
+  width: 2ch;
+  text-align: left;
+  display: inline-block;
+  color: var(--muted);
+  opacity: 0.75;
 }
 
 /* ── Setup ───────────────────────────── */

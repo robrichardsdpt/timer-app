@@ -58,7 +58,13 @@ export default function Stopwatch() {
       <h1 className="mode-title sw-glow">Stopwatch</h1>
 
       <div className="sw-display">
-        <span className="sw-time">{fmt(displayMs)}</span>
+        <span className="sw-seg">{String(Math.floor(displayMs / 60000)).padStart(2, '0')}</span>
+        <span className="sw-sep">:</span>
+        <span className="sw-seg">{String(Math.floor((displayMs % 60000) / 1000)).padStart(2, '0')}</span>
+        <span className="sw-cs-wrap">
+          <span className="sw-dot">.</span>
+          <span className="sw-cs">{String(Math.floor((displayMs % 1000) / 10)).padStart(2, '0')}</span>
+        </span>
       </div>
 
       <div className="controls">
