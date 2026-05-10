@@ -2,26 +2,48 @@ import { useState, useEffect, useRef } from 'react'
 import { useWakeLock } from '../hooks/useWakeLock'
 
 export default function Stopwatch() {
-  const [elapsed, setElapsed] = useState(0)
+  const [displayMs, setDisplayMs] = useState(0)
   const [running, setRunning] = useState(false)
   const [laps, setLaps] = useState([])
-  const tickRef = useRef(null)
+
+  // Refs track real time so RAF can compute elapsed without stale state
+  const rafRef = useRef(null)
+  const startRef = useRef(null)   // performance.now() when last resumed
+  const baseRef = useRef(0)       // accumulated ms before latest resume
 
   useWakeLock(running)
 
   useEffect(() => {
-    if (!running) return
-    tickRef.current = setInterval(() => setElapsed(e => e + 10), 10)
-    return () => clearInterval(tickRef.current)
+    if (running) {
+      startRef.current = performance.now()
+      const tick = () => {
+        setDisplayMs(baseRef.current + (performance.now() - startRef.current))
+        rafRef.current = requestAnimationFrame(tick)
+      }
+      rafRef.current = requestAnimationFrame(tick)
+    } else {
+      if (startRef.current !== null) {
+        baseRef.current += performance.now() - startRef.current
+        startRef.current = null
+      }
+      cancelAnimationFrame(rafRef.current)
+    }
+    return () => cancelAnimationFrame(rafRef.current)
   }, [running])
 
-  function lap() { setLaps(l => [...l, elapsed]) }
+  function snapMs() {
+    return baseRef.current + (startRef.current !== null ? performance.now() - startRef.current : 0)
+  }
+
+  function lap() { setLaps(l => [...l, snapMs()]) }
 
   function reset() {
-    clearInterval(tickRef.current)
+    cancelAnimationFrame(rafRef.current)
     setRunning(false)
-    setElapsed(0)
+    setDisplayMs(0)
     setLaps([])
+    baseRef.current = 0
+    startRef.current = null
   }
 
   function fmt(ms) {
@@ -36,7 +58,7 @@ export default function Stopwatch() {
       <h1 className="mode-title sw-glow">Stopwatch</h1>
 
       <div className="sw-display">
-        <span className="sw-time">{fmt(elapsed)}</span>
+        <span className="sw-time">{fmt(displayMs)}</span>
       </div>
 
       <div className="controls">
@@ -44,10 +66,10 @@ export default function Stopwatch() {
           className={`pill-btn ${running ? 'pill-ghost' : 'pill-cyan'}`}
           onClick={() => setRunning(r => !r)}
         >
-          {running ? 'Pause' : elapsed === 0 ? 'Start' : 'Resume'}
+          {running ? 'Pause' : displayMs === 0 ? 'Start' : 'Resume'}
         </button>
         {running && <button className="pill-btn pill-ghost" onClick={lap}>Lap</button>}
-        {elapsed > 0 && !running && <button className="pill-btn pill-ghost" onClick={reset}>Reset</button>}
+        {displayMs > 0 && !running && <button className="pill-btn pill-ghost" onClick={reset}>Reset</button>}
       </div>
 
       {laps.length > 0 && (

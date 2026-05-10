@@ -147,6 +147,7 @@ body::before {
   font-size: 3rem;
   font-weight: 400;
   letter-spacing: 0.05em;
+  font-variant-numeric: tabular-nums;
   line-height: 1;
   color: var(--text);
   transition: color 0.3s;
@@ -186,6 +187,7 @@ body::before {
   font-size: 3.5rem;
   font-weight: 400;
   letter-spacing: 0.04em;
+  font-variant-numeric: tabular-nums;
   color: var(--text);
   text-shadow: 0 0 40px rgba(232, 238, 255, 0.08);
 }
