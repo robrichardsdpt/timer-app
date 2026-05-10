@@ -48,7 +48,7 @@ export function Ring({ progress, color = '#00d4ff', track = '#0e0e20' }) {
           fill="white"
           filter={`url(#glow-${color.replace('#', '')})`}
           style={{
-            transform: `rotate(${(1 - p) * 360}deg)`,
+            transform: `rotate(${p * 360}deg)`,
             transformOrigin: `${CX}px ${CY}px`,
             transition: 'transform 0.55s linear',
           }}
